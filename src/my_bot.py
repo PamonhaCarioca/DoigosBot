@@ -14,7 +14,7 @@ class MyBot(lugo4py.Bot, ABC):
             ball_position = inspector.get_ball().position
             my_team = inspector.get_my_team_players()
             closest_players = self.get_closest_players(ball_position, my_team)
-            n_catchers = 3
+            n_catchers = 4
             catchers = closest_players[:n_catchers]
 
             if me in catchers:
@@ -36,7 +36,7 @@ class MyBot(lugo4py.Bot, ABC):
             ball_position = inspector.get_ball().position
             my_team = inspector.get_my_team_players()
             closest_players = self.get_closest_players(ball_position, my_team)
-            n_catchers = 3
+            n_catchers = 4
             catchers = closest_players[:n_catchers]
 
             if me in catchers:
@@ -76,7 +76,7 @@ class MyBot(lugo4py.Bot, ABC):
         try:
             print("on supporting")
             ball_position = inspector.get_ball().position
-            move_order = inspector.make_order_move_max_speed(ball_position)
+            move_order = inspector.make_order_move_max_speed(get_my_expected_position(inspector, self.mapper, self.number))
             catch_order = inspector.make_order_catch()
 
             return [move_order, catch_order]
