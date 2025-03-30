@@ -72,7 +72,7 @@ class MyBot(lugo4py.Bot, ABC):
             free_players = self.get_free_allies(inspector, 400)
 
             for ally in closest_to_goal:
-                if ally in free_players and (ally.number != me.number) and (ally.position.x >= me.position.x):
+                if ally in free_players and (ally.number != me.number) and (ally.position.x > me.position.x):
                     kick_order = inspector.make_order_kick_max_speed(ally.position)
                     return [kick_order]
 
