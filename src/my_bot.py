@@ -17,10 +17,10 @@ class MyBot(lugo4py.Bot, ABC):
             ball_position = inspector.get_ball()
             my_team = inspector.get_my_team_players()
             closest_players = self.get_closest_players(ball_position.position, my_team)
-            n_catchers = 3
+            n_catchers = 1
             catchers = closest_players[:n_catchers]
-
-            if me in catchers:
+            me_to_ball = lugo4py.geo.distance_between_points(me.position , ball_position.position)
+            if me in catchers or me_to_ball <=2000:
                 move_order = inspector.make_order_move_max_speed(ball_position.position)
             else:
                 move_order = inspector.make_order_move_max_speed(get_my_expected_position(inspector, self.mapper, self.number))
@@ -41,10 +41,12 @@ class MyBot(lugo4py.Bot, ABC):
             ball_position = inspector.get_ball()
             my_team = inspector.get_my_team_players()
             closest_players = self.get_closest_players(ball_position.position, my_team)
-            n_catchers = 3
+            n_catchers = 2
             catchers = closest_players[:n_catchers]
-
-            if me in catchers:
+            me_to_ball = lugo4py.geo.distance_between_points(me.position , ball_position.position)
+            player_holder = inspector.get_ball_holder()
+            closest_players = self.get_closest_players(me.position, my_team)
+            if me in catchers or me_to_ball <=2000:
                 move_order = inspector.make_order_move_max_speed(ball_position.position)
             else:
                 move_order = inspector.make_order_move_max_speed(get_my_expected_position(inspector, self.mapper, self.number))
@@ -64,23 +66,30 @@ class MyBot(lugo4py.Bot, ABC):
             opponent_goal = self.mapper.get_attack_goal()
             my_team = inspector.get_my_team_players()
             closest_to_goal = self.get_closest_players(opponent_goal.get_center(), my_team)
-            free_players = self.get_free_allies(inspector, 400)
+            free_players = self.get_free_allies(inspector, 800)
 
             for ally in closest_to_goal:
                 ally_to_goal = lugo4py.geo.distance_between_points(ally.position, opponent_goal.get_center())
                 me_to_goal = lugo4py.geo.distance_between_points(me.position, opponent_goal.get_center())
-                closest_to_me = self.get_closest_players(me.position, my_team) [1]
-                if ally in free_players and (ally.number != me.number) and (me_to_goal > ally_to_goal) and closest_to_me.number == ally.number:
+                closest_to_me = self.get_closest_players(me.position, my_team)
+                n_catchers = 2
+                catchers = closest_to_me[:n_catchers]
+                if ally in free_players and (ally.number != me.number) and (me_to_goal > ally_to_goal) and (catchers[1].number == ally.number):
                     move_order = inspector.make_order_move_max_speed(ally.position)
-                    kick_order = inspector.make_order_kick_max_speed(ally.position)
+                    kick_order = inspector.make_order_kick(ally.position, 200)
                     return [move_order , kick_order]
                 elif ally in free_players and (ally.number != me.number) and (me_to_goal > ally_to_goal):
                     move_order = inspector.make_order_move_max_speed(ally.position)
                     kick_order = inspector.make_order_kick_max_speed(ally.position)
                     return [move_order , kick_order]
+                elif ally in free_players and (ally.number != me.number):
+                    move_order = inspector.make_order_move_max_speed(ally.position)
+                    kick_order = inspector.make_order_kick_max_speed(ally.position)
+                    return [move_order , kick_order]
+                
 
             distance_to_goal = lugo4py.geo.distance_between_points(me.position, opponent_goal.get_center())
-            if distance_to_goal <= 2800:
+            if distance_to_goal <= 3400:
                 opponent_goalkeeper = inspector.get_opponent_goalkeeper()
                 distance_top_pole_goalkeeper = lugo4py.geo.distance_between_points(opponent_goalkeeper.position, opponent_goal.get_top_pole())
                 distance_botton_pole_goalkeeper = lugo4py.geo.distance_between_points(opponent_goalkeeper.position, opponent_goal.get_bottom_pole())
@@ -89,7 +98,7 @@ class MyBot(lugo4py.Bot, ABC):
                     a = lugo4py.Point(x = opponent_goalkeeper.position.x,  y = 3700)
                     b = lugo4py.Point(x = opponent_goalkeeper.position.x,  y = 4200)
                     move_order = inspector.make_order_move_max_speed(b)
-                    kick_order = inspector.make_order_kick_max_speed(a)
+                    kick_order = inspector.make_order_kick(a, 350)
                     return [move_order , kick_order]
                 else:
                     
@@ -97,7 +106,7 @@ class MyBot(lugo4py.Bot, ABC):
                     a = lugo4py.Point(x = opponent_goalkeeper.position.x,  y = 6400)
                     b = lugo4py.Point(x = opponent_goalkeeper.position.x,  y = 6000)
                     move_order = inspector.make_order_move_max_speed(b)
-                    kick_order = inspector.make_order_kick_max_speed(a)
+                    kick_order = inspector.make_order_kick(a, 350)
                     return [move_order , kick_order]   
             else:
                 opponent_goalkeeper = inspector.get_opponent_goalkeeper()
@@ -138,26 +147,39 @@ class MyBot(lugo4py.Bot, ABC):
     def as_goalkeeper(self, inspector: lugo4py.GameSnapshotInspector, state: lugo4py.PLAYER_STATE) -> List[lugo4py.Order]:
         try:
             ball_position = inspector.get_ball()
-            me = inspector.get_me().position.x
-            c = lugo4py.Point(x = me, y = ball_position.position.y)
-            a = lugo4py.Point(x=me, y =4050)
-            b = lugo4py.Point(x=me, y =5950)
-            
-            if ball_position.position.y <= 2500 :
-                move_order = inspector.make_order_move_max_speed(a)
-                catch_order = inspector.make_order_catch()
-                return [move_order, catch_order]
-            
-            elif ball_position.position.y >= 5500:
-                move_order = inspector.make_order_move_max_speed(b)
-                catch_order = inspector.make_order_catch()
-                return [move_order, catch_order]
-            
-            
+            me = inspector.get_me()
+            c = lugo4py.Point(x = me.position.x, y = ball_position.position.y)
+            a = lugo4py.Point(x=me.position.x, y =4050)
+            b = lugo4py.Point(x=me.position.x, y =5950)
+
+            player_ball = inspector.get_ball_holder().number
+            if player_ball == me.number:
+                my_team = inspector.get_my_team_players()
+                closest_to_me = self.get_closest_players(me.position, my_team)
+                free_players = self.get_free_allies(inspector, 400)
+                for ally in closest_to_me:
+                    if ally in free_players and (ally.number != me.number):
+                        kick_order = inspector.make_order_kick_max_speed(ally.position)
+                        return [kick_order]
+                    
             else:
-                move_order = inspector.make_order_move_max_speed(c)
-                catch_order = inspector.make_order_catch()
-                return [move_order, catch_order]
+                if ball_position.position.y <= 2500 :
+                    move_order = inspector.make_order_move_max_speed(a)
+                    catch_order = inspector.make_order_catch()
+                    return [move_order, catch_order]
+                
+                elif ball_position.position.y >= 5500:
+                    move_order = inspector.make_order_move_max_speed(b)
+                    catch_order = inspector.make_order_catch()
+                    return [move_order, catch_order]
+                
+                else:
+                    move_order = inspector.make_order_move_max_speed(c)
+                    catch_order = inspector.make_order_catch()
+                    return [move_order, catch_order]
+            
+
+
 
 
         except Exception as e:
@@ -195,3 +217,5 @@ class MyBot(lugo4py.Bot, ABC):
                 free_players.append(ally)
 
         return free_players
+
+
