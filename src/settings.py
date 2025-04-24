@@ -14,10 +14,10 @@ PLAYER_INITIAL_POSITIONS = {
     3: {'Col': 2, 'Row': 2},
     4: {'Col': 2, 'Row': 3},
     5: {'Col': 1, 'Row': 4},
-    6: {'Col': 3, 'Row': 1},
+    6: {'Col': 4, 'Row': 1},
     7: {'Col': 3, 'Row': 2},
     8: {'Col': 3, 'Row': 3},
-    9: {'Col': 3, 'Row': 4},
+    9: {'Col': 4, 'Row': 4},
     10: {'Col': 4, 'Row': 3},
     11: {'Col': 4, 'Row': 2},
 }
@@ -27,52 +27,54 @@ def get_my_expected_position(inspector: lugo4py.GameSnapshotInspector, my_mapper
 
     player_tactic_positions = {
         'DEFENSIVE': {
-            2: {'Col': 1, 'Row': 1},
+            2: {'Col': 0, 'Row': 2},
             3: {'Col': 2, 'Row': 2},
             4: {'Col': 2, 'Row': 3},
-            5: {'Col': 1, 'Row': 4},
-            6: {'Col': 3, 'Row': 1},
+            5: {'Col': 0, 'Row': 3},
+            6: {'Col': 4, 'Row': 1},
             7: {'Col': 3, 'Row': 2},
             8: {'Col': 3, 'Row': 3},
-            9: {'Col': 3, 'Row': 4},
-            10: {'Col': 4, 'Row': 3},
-            11: {'Col': 4, 'Row': 2},
+            9: {'Col': 4, 'Row': 4},
+            10: {'Col': 5, 'Row': 4},
+            11: {'Col': 5, 'Row': 1},
         },
         'NORMAL': {
-            2: {'Col': 2, 'Row': 1},
-            3: {'Col': 4, 'Row': 2},
-            4: {'Col': 4, 'Row': 3},
-            5: {'Col': 2, 'Row': 4},
-            6: {'Col': 6, 'Row': 1},
-            7: {'Col': 8, 'Row': 2},
-            8: {'Col': 8, 'Row': 3},
-            9: {'Col': 6, 'Row': 4},
-            10: {'Col': 7, 'Row': 4},
-            11: {'Col': 7, 'Row': 1},
+            2: {'Col': 2, 'Row': 2},
+            3: {'Col': 3, 'Row': 2},
+            4: {'Col': 3, 'Row': 3},
+            5: {'Col': 2, 'Row': 3},
+            6: {'Col': 5, 'Row': 1},
+            7: {'Col': 4, 'Row': 2},
+            8: {'Col': 4, 'Row': 3},
+            9: {'Col': 5, 'Row': 4},
+            10: {'Col': 6, 'Row': 3},
+            11: {'Col': 6, 'Row': 2},
         },
         'OFFENSIVE': {
-            2: {'Col': 3, 'Row': 1},
+            2: {'Col': 2, 'Row': 2},
             3: {'Col': 5, 'Row': 2},
             4: {'Col': 5, 'Row': 3},
-            5: {'Col': 3, 'Row': 4},
-            6: {'Col': 7, 'Row': 1},
-            7: {'Col': 8, 'Row': 2},
-            8: {'Col': 8, 'Row': 3},
-            9: {'Col': 7, 'Row': 4},
+            5: {'Col': 2, 'Row': 3},
+            6: {'Col': 8, 'Row': 3},
+            7: {'Col': 7, 'Row': 2},
+            8: {'Col': 7, 'Row': 3},
+            9: {'Col': 8, 'Row': 2},
             10: {'Col': 9, 'Row': 4},
             11: {'Col': 9, 'Row': 1},
         }
     }
 
     ball_region = my_mapper.get_region_from_point(inspector.get_ball().position)
-    field_third = mapper_cols / 3
+    field_third = mapper_cols / 5
     ball_cols = ball_region.get_col()
 
     team_state = "OFFENSIVE"
-    if ball_cols < field_third:
+    if ball_cols < field_third * 2.5:
         team_state = "DEFENSIVE"
-    elif ball_cols < field_third * 2:
+    elif  ball_cols >= field_third * 2.5 and ball_cols <= field_third * 3.5:
         team_state = "NORMAL"
+    elif ball_cols > field_third * 3.5:
+        team_state = "OFFENSIVE"
 
     expected_region = my_mapper.get_region(player_tactic_positions[team_state][number]['Col'],
                                            player_tactic_positions[team_state][number]['Row'])
